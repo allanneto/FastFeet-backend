@@ -1,0 +1,9 @@
+const { resolve } = require('path');
+
+module.exports = {
+  // iremos exportar um objeto
+  config: resolve(__dirname, 'src', 'config', 'database.js'), // A primeira propriedade do objeto é o config entao precisamos retornar qual o caminho para o arquivo de configuracao da database;
+  'models-path': resolve(__dirname, 'src', 'app', 'models'),
+  'migrations-path': resolve(__dirname, 'src', 'database', 'migrations'),
+  'seeders-path': resolve(__dirname, 'src', 'database', 'seeds'),
+};

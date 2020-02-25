@@ -1,4 +1,4 @@
 export default {
-  host: '10.0.0.108',
-  port: 6379,
+  host: process.env.REDIS_HOST, // por padrao o redis roda na porta 127.0.0.1 da aplicacao
+  port: process.env.REDIS_PORT,
 };

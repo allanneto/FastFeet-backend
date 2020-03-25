@@ -77,6 +77,13 @@ class CourierOptionsContoller {
         message: ' You can just start a delivery between 08am and 06pm',
       });
     }
+
+    if (delivery.canceled_at) {
+      return res.status(400).json({
+        message: 'This delivery is already cancelled',
+      });
+    }
+
     delivery.update({
       start_date: new Date(),
     });

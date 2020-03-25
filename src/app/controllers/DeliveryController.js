@@ -1,8 +1,12 @@
 import * as Yup from 'yup';
 
+import { Op } from 'sequelize';
+
 import Delivery from '../models/Delivery';
 import Recipient from '../models/Recipient';
 import Courier from '../models/Courier';
+import File from '../models/File';
+import Problem from '../models/Delivery_Problem';
 
 import Queue from '../../lib/Queue';
 
@@ -86,11 +90,67 @@ class DeliveryController {
   async index(req, res) {
     const page = 1;
 
+    const query = `%${req.query.product}%`;
+
+    if (query === '%undefined%') {
+      const deliveries = await Delivery.findAll({
+        order: ['id'],
+        limit: 20,
+        offset: (page - 1) * 20,
+        include: [
+          {
+            model: Recipient,
+            as: 'recipient',
+            attributes: [
+              'id',
+              'recipient_name',
+              'city',
+              'state',
+              'street',
+              'number',
+              'postal_code',
+            ],
+          },
+          {
+            model: Courier,
+            as: 'courier',
+            attributes: ['id', 'name'],
+          },
+          {
+            model: File,
+            as: 'signature',
+            attributes: ['url', 'path', 'id', 'name'],
+          },
+        ],
+      });
+
+      if (deliveries.length === 0) {
+        return res.json({
+          message: 'Does not exists deliveries registered',
+        });
+      }
+
+      if (!deliveries) {
+        return res.status(400).json({ error: 'Database is empty' });
+      }
+
+      return res.json(deliveries);
+    }
+
     const deliveries = await Delivery.findAll({
+      where: {
+        product: { [Op.iLike]: query },
+      },
       order: ['id'],
       limit: 20,
       offset: (page - 1) * 20,
     });
+
+    if (deliveries.length === 0) {
+      return res.json({
+        message: 'Does not exists deliveries with this product',
+      });
+    }
 
     if (!deliveries) {
       return res.status(400).json({ error: 'Database is empty' });
@@ -112,9 +172,9 @@ class DeliveryController {
       signature_id,
     } = req.body;
 
-    // if (!(await schema.isValid(req.body))) {
-    //   return res.status(400).json({ error: 'Validation fails' });
-    // }
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
 
     const delivery = await Delivery.findByPk(req.params.id);
 
@@ -142,7 +202,14 @@ class DeliveryController {
           courier,
         });
 
-        delivery.update(req.body);
+        const end_date = signature_id ? new Date() : null;
+
+        const updateInfo = {
+          ...req.body,
+          end_date,
+        };
+
+        delivery.update(updateInfo);
 
         return res.json({
           message: 'Delivery updated',
@@ -194,20 +261,29 @@ class DeliveryController {
   }
 
   async delete(req, res) {
+    const delivery_id = req.params.id;
+
     const delivery = await Delivery.findByPk(req.params.id);
+
+    if (!delivery) {
+      return res.status(400).json({
+        message: `Id ${req.params.id} does not exists in the database`,
+      });
+    }
 
     const courier = await Courier.findByPk(delivery.courier_id);
 
-    const deliveryInfo = { delivery_id: req.params.id };
+    const deliveryInfo = { delivery_id };
 
-    delivery.destroy();
+    await delivery.destroy();
 
     Queue.add(DeliveryCancelled.key, {
       deliveryInfo,
       courier,
     });
+
     return res.json({
-      message: 'Delivery deleted',
+      message: `Delivery ${delivery_id} deleted`,
     });
   }
 

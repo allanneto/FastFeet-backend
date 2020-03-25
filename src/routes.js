@@ -30,7 +30,8 @@ routes.post('/login', SessionController.store);
 // Using auth middleware after this
 routes.use(authMiddleware);
 
-// Recipient routes
+// Recipient
+routes.get('/recipients', RecipientController.index);
 routes.post('/recipients', RecipientController.store);
 routes.put('/recipients/:id', RecipientController.update);
 
@@ -44,7 +45,7 @@ routes.delete('/couriers/:id', CourierController.delete);
 routes.post('/delivery', DeliveryController.store);
 routes.get('/delivery', DeliveryController.index);
 routes.put('/delivery/:id', DeliveryController.update);
-routes.delete('/problem/:id/cancel-delivery', DeliveryController.delete);
+routes.delete('/problem/:id/delete-delivery', DeliveryController.delete);
 routes.get('/delivery/:id', DeliveryController.cancel);
 
 // Courier options

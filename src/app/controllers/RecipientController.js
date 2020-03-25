@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { Op } from 'sequelize';
 import axios from 'axios';
 import Recipient from '../models/Recipient';
 
@@ -150,6 +151,44 @@ class RecipientController {
         recipient_id,
       },
     });
+  }
+
+  async index(req, res) {
+    const { page = 1 } = req.params;
+
+    const query = `%${req.query.name}%`;
+
+    if (query === '%undefined%') {
+      const recipients = await Recipient.findAll({
+        order: ['id'],
+        attributes: ['id', 'recipient_name', 'postal_code'],
+        limit: 20,
+        offset: (page - 1) * 20,
+      });
+
+      if (recipients.length === 0) {
+        return res.json({
+          message: 'Does not exists recipients registered',
+        });
+      }
+
+      return res.json(recipients);
+    }
+    const recipients = await Recipient.findAll({
+      where: { recipient_name: { [Op.iLike]: query } },
+      order: ['id'],
+      attributes: ['id', 'recipient_name', 'postal_code'],
+      limit: 20,
+      offset: (page - 1) * 20,
+    });
+
+    if (recipients.length === 0) {
+      return res.json({
+        message: 'Does not exists recipients with this name',
+      });
+    }
+
+    return res.json(recipients);
   }
 }
 

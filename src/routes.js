@@ -27,6 +27,33 @@ routes.get('/', (req, res) => {
 // Session routes
 routes.post('/login', SessionController.store);
 
+// Courier options
+routes.get('/deliveryman/:courier_id', CourierOptionsController.login);
+
+routes.get(
+  '/deliveryman/:courier_id/deliveries',
+  CourierOptionsController.index
+);
+
+routes.get(
+  '/deliveryman/:courier_id/deliveries/:delivery_id',
+  CourierOptionsController.startDelivery
+);
+routes.post(
+  '/deliveryman/:courier_id/deliveries/:delivery_id',
+  upload.single('file'),
+  CourierOptionsController.finishDelivery
+);
+routes.post(
+  '/deliveryman/:courier_id/deliveries/',
+  CourierOptionsController.teste
+);
+
+// Delivery Problems
+routes.get('/problems', DeliveryProblemsController.index);
+routes.post('/problems/:delivery_id', DeliveryProblemsController.store);
+routes.delete('/problems/:id', DeliveryProblemsController.delete);
+
 // Using auth middleware after this
 routes.use(authMiddleware);
 
@@ -48,26 +75,6 @@ routes.get('/delivery', DeliveryController.index);
 routes.put('/delivery/:id', DeliveryController.update);
 routes.delete('/delete-delivery/:id', DeliveryController.delete);
 routes.get('/delivery/:id', DeliveryController.cancel);
-
-// Courier options
-routes.get(
-  '/deliveryman/:courier_id/deliveries',
-  CourierOptionsController.index
-);
-routes.get(
-  '/deliveryman/:courier_id/deliveries/:delivery_id',
-  CourierOptionsController.startDelivery
-);
-routes.post(
-  '/deliveryman/:courier_id/deliveries/:delivery_id',
-  upload.single('file'),
-  CourierOptionsController.finishDelivery
-);
-
-// Delivery Problems
-routes.get('/problems', DeliveryProblemsController.index);
-routes.post('/problems/:delivery_id', DeliveryProblemsController.store);
-routes.delete('/problems/:id', DeliveryProblemsController.delete);
 
 // Avatar ID
 routes.post('/files', upload.single('file'), FileController.store);

@@ -3,11 +3,6 @@ import {
   endOfToday,
   isAfter,
   isBefore,
-  parseISO,
-  endOfHour,
-  startOfHour,
-  getHours,
-  setSeconds,
   setHours,
   setMinutes,
 } from 'date-fns';
@@ -21,12 +16,80 @@ import File from '../models/File';
 
 class CourierOptionsContoller {
   async index(req, res) {
+    const { filter, id } = req.query;
+
+    if (filter === 'finish') {
+      const deliveries = await Delivery.findAll({
+        where: {
+          courier_id: req.params.courier_id,
+          canceled_at: null,
+          end_date: {
+            [Op.ne]: null,
+          },
+        },
+        include: [
+          {
+            model: Recipient,
+            as: 'recipient',
+            attributes: [
+              'id',
+              'recipient_name',
+              'city',
+              'state',
+              'street',
+              'number',
+              'postal_code',
+            ],
+          },
+        ],
+      });
+
+      return res.json(deliveries);
+    }
+
+    if (id) {
+      const deliveries = await Delivery.findByPk(id, {
+        include: [
+          {
+            model: Recipient,
+            as: 'recipient',
+            attributes: [
+              'id',
+              'recipient_name',
+              'city',
+              'state',
+              'street',
+              'number',
+              'postal_code',
+            ],
+          },
+        ],
+      });
+
+      return res.json(deliveries);
+    }
+
     const deliveries = await Delivery.findAll({
       where: {
         courier_id: req.params.courier_id,
         canceled_at: null,
         end_date: null,
       },
+      include: [
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: [
+            'id',
+            'recipient_name',
+            'city',
+            'state',
+            'street',
+            'number',
+            'postal_code',
+          ],
+        },
+      ],
     });
 
     return res.json(deliveries);
@@ -94,6 +157,8 @@ class CourierOptionsContoller {
   async finishDelivery(req, res) {
     const { courier_id, delivery_id } = req.params;
 
+    console.log(req.body);
+
     const delivery = await Delivery.findByPk(delivery_id);
 
     // Check start
@@ -117,8 +182,6 @@ class CourierOptionsContoller {
       path,
     });
 
-    // const hourStart = isBefore(new Date());
-
     delivery.update({
       signature_id: id,
       end_date: new Date(),
@@ -128,6 +191,30 @@ class CourierOptionsContoller {
       message: 'Delivery has been completed',
       signaturePath: path,
     });
+  }
+
+  async login(req, res) {
+    const courier = await Courier.findByPk(req.params.courier_id, {
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['url', 'path', 'id', 'name'],
+        },
+      ],
+    });
+
+    if (!courier) {
+      return res.status(400).json({ message: 'Incorrect ID' });
+    }
+
+    return res.json({
+      courier,
+    });
+  }
+
+  async teste(req, res) {
+    return console.log(req.body);
   }
 }
 

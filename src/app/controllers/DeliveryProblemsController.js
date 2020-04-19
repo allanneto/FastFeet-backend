@@ -7,21 +7,19 @@ import Delivery_Problem from '../models/Delivery_Problem';
 
 class DeliveryProblemsController {
   async index(req, res) {
-    if (!req.query.delivery_id) {
-      const problems = await Delivery_Problem.findAll({
-        order: ['delivery_id'],
-      });
+    const { delivery } = req.query;
 
-      if (!problems) {
-        return res.json({ message: 'This delivery does not have problems' });
-      }
+    if (delivery) {
+      const problems = await Delivery_Problem.findAll({
+        order: ['id'],
+        where: { delivery_id: req.query.delivery },
+      });
 
       return res.json(problems);
     }
 
     const problems = await Delivery_Problem.findAll({
-      order: ['id'],
-      where: { delivery_id: req.query.delivery },
+      order: ['delivery_id'],
     });
 
     if (!problems) {

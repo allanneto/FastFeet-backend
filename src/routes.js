@@ -34,6 +34,7 @@ routes.use(authMiddleware);
 routes.get('/recipients', RecipientController.index);
 routes.post('/recipients', RecipientController.store);
 routes.put('/recipients/:id', RecipientController.update);
+routes.delete('/recipients/:id', RecipientController.delete);
 
 // Couriers routes
 routes.post('/couriers', CourierController.store);
@@ -45,7 +46,7 @@ routes.delete('/couriers/:id', CourierController.delete);
 routes.post('/delivery', DeliveryController.store);
 routes.get('/delivery', DeliveryController.index);
 routes.put('/delivery/:id', DeliveryController.update);
-routes.delete('/problem/:id/delete-delivery', DeliveryController.delete);
+routes.delete('/delete-delivery/:id', DeliveryController.delete);
 routes.get('/delivery/:id', DeliveryController.cancel);
 
 // Courier options
@@ -64,11 +65,9 @@ routes.post(
 );
 
 // Delivery Problems
-routes.get('/delivery/:delivery_id/problems', DeliveryProblemsController.index);
-routes.post(
-  '/delivery/:delivery_id/problems',
-  DeliveryProblemsController.store
-);
+routes.get('/problems', DeliveryProblemsController.index);
+routes.post('/problems/:delivery_id', DeliveryProblemsController.store);
+routes.delete('/problems/:id', DeliveryProblemsController.delete);
 
 // Avatar ID
 routes.post('/files', upload.single('file'), FileController.store);

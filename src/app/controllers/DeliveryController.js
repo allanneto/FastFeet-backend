@@ -144,6 +144,31 @@ class DeliveryController {
       order: ['id'],
       limit: 20,
       offset: (page - 1) * 20,
+      include: [
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: [
+            'id',
+            'recipient_name',
+            'city',
+            'state',
+            'street',
+            'number',
+            'postal_code',
+          ],
+        },
+        {
+          model: Courier,
+          as: 'courier',
+          attributes: ['id', 'name'],
+        },
+        {
+          model: File,
+          as: 'signature',
+          attributes: ['url', 'path', 'id', 'name'],
+        },
+      ],
     });
 
     if (deliveries.length === 0) {
@@ -304,7 +329,7 @@ class DeliveryController {
     });
 
     return res.json({
-      message: 'Recipient canceled',
+      message: 'Delivery canceled',
     });
   }
 }

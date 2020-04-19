@@ -1,7 +1,9 @@
 import * as Yup from 'yup';
 import { Op } from 'sequelize';
 import axios from 'axios';
+
 import Recipient from '../models/Recipient';
+import Delivery from '../models/Delivery';
 
 class RecipientController {
   async store(req, res) {
@@ -161,7 +163,6 @@ class RecipientController {
     if (query === '%undefined%') {
       const recipients = await Recipient.findAll({
         order: ['id'],
-        attributes: ['id', 'recipient_name', 'postal_code'],
         limit: 20,
         offset: (page - 1) * 20,
       });
@@ -177,7 +178,6 @@ class RecipientController {
     const recipients = await Recipient.findAll({
       where: { recipient_name: { [Op.iLike]: query } },
       order: ['id'],
-      attributes: ['id', 'recipient_name', 'postal_code'],
       limit: 20,
       offset: (page - 1) * 20,
     });
@@ -189,6 +189,37 @@ class RecipientController {
     }
 
     return res.json(recipients);
+  }
+
+  async delete(req, res) {
+    const recipient_id = req.params.id;
+
+    const deliveries = await Delivery.findAll({
+      where: {
+        recipient_id,
+      },
+    });
+
+    if (deliveries.length !== 0) {
+      return res.status(400).json({
+        message:
+          'This recipient is already assigned to one or more deliveries, please reassign the deliveries before delete this recipient',
+      });
+    }
+
+    const recipient = await Recipient.findByPk(recipient_id);
+
+    if (recipient.length === 0) {
+      return res.status(400).json({
+        message: 'This recipient is not registered in database',
+      });
+    }
+
+    await recipient.destroy();
+
+    return res.json({
+      message: `Recipient ${recipient_id} deleted.`,
+    });
   }
 }
 

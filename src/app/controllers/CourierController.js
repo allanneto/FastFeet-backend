@@ -2,11 +2,16 @@ import * as Yup from 'yup';
 import { Op } from 'sequelize';
 import Courier from '../models/Courier';
 
+import File from '../models/File';
+import Delivery from '../models/Delivery';
+
 class CourierController {
   async store(req, res) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
-      email: Yup.string().email(),
+      email: Yup.string()
+        .email()
+        .required(),
       avatar_id: Yup.number(),
     });
 
@@ -46,6 +51,13 @@ class CourierController {
         attributes: ['id', 'name', 'email', 'created_at'],
         limit: 20,
         offset: (page - 1) * 20,
+        include: [
+          {
+            model: File,
+            as: 'avatar',
+            attributes: ['url', 'path', 'id', 'name'],
+          },
+        ],
       });
 
       if (couriers.length === 0) {
@@ -63,6 +75,13 @@ class CourierController {
       attributes: ['id', 'name', 'email', 'created_at'],
       limit: 20,
       offset: (page - 1) * 20,
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['url', 'path', 'id', 'name'],
+        },
+      ],
     });
 
     if (couriers.length === 0) {
@@ -105,13 +124,24 @@ class CourierController {
   async delete(req, res) {
     const courier = await Courier.findByPk(req.params.id);
 
+    const deliveries = await Delivery.findAll({
+      where: {
+        courier_id: req.params.id,
+      },
+    });
+
+    if (deliveries.length !== 0) {
+      return res.status(400).json({
+        message:
+          'The informed courier have deliveries in progress, you can not delete before reassign this deliveries to another courier.',
+      });
+    }
+
     if (!courier) {
       return res.status(400).json({ error: 'User not found in database' });
     }
 
     await courier.destroy();
-
-    console.log(courier);
 
     return res.json({ message: 'User deleted!' });
   }

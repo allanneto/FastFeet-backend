@@ -45,7 +45,8 @@ routes.post(
   CourierOptionsController.finishDelivery
 );
 routes.post(
-  '/deliveryman/:courier_id/deliveries/',
+  '/deliveryman/:courier_id/deliveries',
+  upload.single('file'),
   CourierOptionsController.teste
 );
 

@@ -136,8 +136,9 @@ class CourierOptionsContoller {
       !isAfter(new Date(), setMinutes(setHours(new Date(), 4), 59)) ||
       !isBefore(new Date(), setMinutes(setHours(new Date(), 15), 0))
     ) {
+      console.log('aqui');
       return res.status(400).json({
-        message: ' You can just start a delivery between 08am and 06pm',
+        message: 'You can just start a delivery between 08am and 06pm',
       });
     }
 
@@ -156,8 +157,6 @@ class CourierOptionsContoller {
 
   async finishDelivery(req, res) {
     const { courier_id, delivery_id } = req.params;
-
-    console.log(req.body);
 
     const delivery = await Delivery.findByPk(delivery_id);
 
@@ -181,6 +180,8 @@ class CourierOptionsContoller {
       name,
       path,
     });
+
+    console.log(req.params);
 
     delivery.update({
       signature_id: id,
@@ -214,7 +215,9 @@ class CourierOptionsContoller {
   }
 
   async teste(req, res) {
-    return console.log(req.body);
+    console.log(req.body);
+    console.log(req.file);
+    return res.json('Fala DEV');
   }
 }
 
